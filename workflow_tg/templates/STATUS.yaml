@@ -1,0 +1,14 @@
+# 机器生成 → 落 CONFIG 解析的 <long_term_root>/<scope>/status.yaml（long_term_root=基目录不含 scope，默认 docs/product/）。别人手编辑成熟度（由 /tg-* 命令维护）。
+scope: chat
+intent_state: accepted            # exploring | accepted
+verification_state: verified      # not-implemented | pending | verified | stale
+last_verified: 2026-06-19         # 仅信息；stale 由事件触发，非时间
+open_deltas:                      # 待验 delta（→ UI 显示 ■+N△）
+  - id: REQ-chat-012
+    verification_state: pending
+evidence:                         # 证据指针
+  experience: <run_root>/<thread-id>/evidence/      # 路径经 CONFIG 解析（示例）
+  tests: frontend/.../__tests__/modelSelection.test.ts
+  baseline: <baseline_dir>/continue-work.json       # 经 CONFIG 解析（示例）
+  metrics: <run_root>/<thread-id>/                   # /tg-experiment 测量结果指针（WER/延迟/信噪…）；经 CONFIG 解析（示例）
+stale_triggers_seen: []           # 事件触发记录（代码改/依赖改/基线失败/契约变…）
