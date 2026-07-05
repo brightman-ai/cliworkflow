@@ -1,6 +1,6 @@
 ---
 name: cw-init
-description: "[TG·横切] 新工程初始化 — 自适应访谈填 docs/product/CONFIG.md + 查工具(缺则提醒装) + 验加载链，接入 workflow_tg。触发: /cw-init、'接入 tg'、'新工程初始化"
+description: "[TG·横切] 新工程初始化 — 自适应访谈填 docs/product/CONFIG.md + 查工具(缺则提醒装) + 验加载链，接入 workflow_tg。触发: /cw-init、'接入 tg'、'新工程初始化'"
 ---
 
 # cw-init — workflow_tg

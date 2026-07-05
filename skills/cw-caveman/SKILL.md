@@ -1,6 +1,6 @@
 ---
 name: cw-caveman
-description: "[TG] 极简表达模式 — 砍废话省 token，技术实质/证据/警告全保留。触发: /cw-caveman、'caveman'、'省点token'、'简洁点"
+description: "[TG] 极简表达模式 — 砍废话省 token，技术实质/证据/警告全保留。触发: /cw-caveman、'caveman'、'省点token'、'简洁点'"
 ---
 
 # cw-caveman — workflow_tg

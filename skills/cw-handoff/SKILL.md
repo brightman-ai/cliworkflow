@@ -1,6 +1,6 @@
 ---
 name: cw-handoff
-description: "[TG] 高质量跨 session 交接 — 把长对话蒸馏成结构化、可无损接续的 handoff（防信息丢失）。触发: /cw-handoff、'交接'、'换个session继续"
+description: "[TG] 高质量跨 session 交接 — 把长对话蒸馏成结构化、可无损接续的 handoff（防信息丢失）。触发: /cw-handoff、'交接'、'换个session继续'"
 ---
 
 # cw-handoff — workflow_tg
