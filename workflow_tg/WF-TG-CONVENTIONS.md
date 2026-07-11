@@ -40,7 +40,7 @@
 | `spec.md`（per-scope）| spec/change，人审 | 同-scope 并发编辑 | **per-scope 单 SSOT**；跨 scope 隔离；同-scope 靠 git/Human 合并 |
 | `status.yaml`（per-scope）| verify/change，机器 | 同-scope 并发更新 | per-scope；**可再生机器状态**，last-writer 可接受 |
 | `decisions.md`（per-scope）| 人审取舍，append | 同-scope 并发追加 | per-scope；低频可单文件，若高频→拆 per-entry |
-| `docs/topics/<topic_id>-<slug>/`（think **真相**）| think，多会话 | 唯一 topic_id 隔离 | **每条一目录**（并发安全；topic_id=`TH-<日期>-<slug>`，同日同 slug 递增）；**status(DISCUSSING/MERGED)+结晶数写在目录内 session 文件头** = 状态真相 |
+| `docs/topics/<topic_id>-<slug>/`（think **真相**）| think；clarify/brainstorm **就地深碰**按同规范条件写入，多会话 | 唯一 topic_id 隔离 | **每条一目录**（并发安全；topic_id=`TH-<日期>-<slug>`，同日同 slug 递增）；**status(DISCUSSING/MERGED)+结晶数写在目录内 session 文件头** = 状态真相 |
 | `docs/topics/TOPIC-BOARD.md`（think 索引）| think 注册，多会话 | 中（并发 append）| **仅可再生聚合索引、非真相**——**status/结晶数真相在 per-topic session 文件头**；board 由"`ls` topic 目录 + 读各 status"**聚合重建**，并发丢 entry/状态可重建（沿用 i-think 生态不另立）|
 | 全局 `WF-TG-META-LESSONS.md` | retro 晋升，罕见/人审 | 低（**但跨机**）| 单文件**策展索引**；**多机 merge-safe**：id=`TGL-<日期>-<slug>`（生成前 grep 去重 + 同日同 slug 追加 `-N`，禁顺序号）+ 写前 `git pull --rebase` + §Lint L9 唯一性复核；冲突浮现（非静默）可手动保留两条（见 `WF-TG-META-LESSONS.md` 头"多机互不冲突更新"）|
 > **判据**：会被"多会话并发追加"的 → 每条一文件；read-mostly / 一次性配置 / per-scope 单 SSOT / 人审策展索引 → 单文件（但 per-scope 隔离 + 写者幂等/低频）。新增任何持久化文件先过此表定形态。

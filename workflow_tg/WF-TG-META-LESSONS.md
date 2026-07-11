@@ -31,6 +31,10 @@
 | TGL-20260621-diagnostic-visibility-first | **不透明集成静默失败时盲修——没先"让失败开口"**(返成功但无产出/静默 no-op → 反复猜修而非取错误可见性);"2次失败"退化成"宣布硬墙 defer 给人"| 第3方/native/不透明边界"返成功但无预期产出" · `/cw-experience-troubleshoot` · 连续2次 edit→rebuild 同边界 observable 未变 | 行为/外部 guard(非静态 lint):同一不透明边界连续修 observable 未变 **≥2 → 必做可见性动作**(verbose build/全功能工具带 stderr/最小 repro/符号依赖检查),**非第3次盲修、非 defer**;复用资产=潜在缺陷 hypothesis#1 | active |
 | TGL-20260621-design-code-divergence | **设计/规格声明的修法只活在文字,代码背离**(doc-only 不变量:声明"已实现"但代码做反/没建);self-mark ✅ 在结构上不可能交付的代码 | 声明"已实现设计修法"前 · `/cw-design-review` 前置 · spec 有 load-bearing 不变量时 | 每条 load-bearing 不变量 → **机械 grep 证代码强制/不违反**(如"扩展禁调 RimeStartMaintenance"→ `rg` 在扩展 target 应空);完成前必跑,早于 LLM review | active |
 | TGL-20260621-task-state-oracle-binding | **任务状态机被过早标 `completed`(未绑 oracle)→ 污染下一 agent 继承的状态 → 成下轮 over-claim 源头**(比报告 fake-done 更隐:状态会持久+跨 agent 传)| `TaskUpdate completed` / 自标 ✅ / handoff 状态清单 / 实现型任务收尾 | `completed` **必须能指向该条目的 oracle 证据**(runtime/test/Witness);否则只能记 `implemented`/`build-green`/`pending-verification` —— 状态≠验过 | active |
+| TGL-20260711-network-exposure-gate | **扩大网络可达面未核门控**：tunnel/端口/反代/分享链接把无鉴权服务暴露公网 | 变更含 tunnel·端口暴露·反代·分享链接·EnableNetwork 类开关 · spec/change 涉网络面 | 该变更输出必含"目标服务门控现状"一行(有/无 auth + 依据)；无门控 → G3 停等 Human；缺此行=未过门 | active |
+| TGL-20260711-defensive-attribution | **防御性归因**：用户报 bug 先辩"非我改的"，读证据在后，被打脸 | 用户报"是不是你改出了bug/又坏了" · 新报障归因时 | 归因结论必须与证据(用户复现/git diff/实测)**同条消息**；无证据只能答"先查"——transcript 抽查"非我"句均带证据 | active |
+| TGL-20260711-tool-capability-misjudge | **工具能力误判**：grep 截断的 help 没命中就断言"不支持"，转身走更脏绕行 | 宣称某工具缺能力 / 据此降级绕行前 | "不支持"断言必附 help/README 证据行；无证据按 ○ 且先疑用法(§A.7②) | active |
+| TGL-20260711-ssot-search-exhaustion | **SSOT 检索止步第一命中**：已有实现被判"不存在"→另起炉灶/建新仓/让用户拍已成立的决策 | 下"不存在/需新建/建新仓"结论前 · 决策拍定前 | 结论须列已扫同义词族(中英+缩写)+目录 ls 证据；每个待拍决策先答"现状是否已满足" | active |
 
 ## Lint（可复制直接跑，cwd = `~/code/claude_remote`；`grep -rn` 才能扫目录）
 ```bash
@@ -57,6 +61,8 @@ for f in workflow_tg/WF-TG-GUARDRAILS.md workflow_tg/WF-TG-CONVENTIONS.md workfl
 for f in workflow_tg/cards/TG-EXPERIENCE-VERIFY.md workflow_tg/cards/TG-EXPERIENCE-EXPLORE-FULL.md; do grep -qE '(终判|消费)' "$f" || echo "消费方缺终判语义: $f"; done   # 消费方角色核查(布尔 tripwire 非语义证明,同 L10 口径)
 # L12 caveman 已删负优化规则防漂回 (20260705 修正: 自造缩写/箭头省字推荐已删; 应空)
 grep -nE '缩写常见词|因果用箭头|用箭头表因果|箭头表因果' commands/cw-caveman.md workflow_tg/design/TG-CAVEMAN.design.md
+# L13 命令入口文件存在性 (防改名遗留死链, 20260711 router 曾指 tg-*.md 不存在文件; 应空)
+for c in think clarify brainstorm spec change experiment design-review experience-explore-full experience-troubleshoot experience-verify experience-distill-baseline init retro caveman handoff goal-draft; do [ -f commands/cw-$c.md ] || echo "缺命令文件: cw-$c"; done
 ```
 （TGL-01/02/07 靠独立验证/人审，无机械 grep；TGL-02 = 改完跑全部 Lint 条目扫全四层；**L9 = 多机 id 唯一性,rebase 后必跑；L10 = 仅核查"载 META"布尔列(矩阵¹)对齐 —— CONFIG/run_root/method_effect 列目前靠人审对照矩阵、未机械门(别当全矩阵已机械核查),加/改命令必跑；L11 = 偏差日志契约六文件传播(GUARDRAILS §8 单源)；L12 = caveman 负优化规则勿写回**。）
 
@@ -72,7 +78,7 @@ grep -nE '缩写常见词|因果用箭头|用箭头表因果|箭头表因果' co
 ### TGL-02 不完整传播
 - 症状：在一处（卡）修好原则，同类违规仍活在命令包装层 / 模板 / 总纲 / 别的卡。
 - 处方：改原则后**必跑关键词 lint 扫全四层**（design/card/command/template），不只改你手上那层。
-- 证据锚：CONFIG 解析铁律进卡但 orchestrator/模板还硬编码；actor 零专属进 CONFIG-TEMPLATE 但 experience 卡命令还写"权威 playbook"。**本 session 经 /cw-retro 双路确认：跨 codex review 5 轮复发、transcript 175 次提及——根因见 TGL-09（authoring 绕过自动浮现）**。**20260620 第7次**：加多机 merge-safe 改了 registry/card/command/design/GUARDRAILS 5 处却**漏 `WF-TG-CONVENTIONS.md`**（并发分类表仍"全局低频单写 OK"旧口径）+ §Lint 缺 id 唯一性——codex 对抗审抓出（我 grep 传播只扫手上 5 文件未含 CONVENTIONS）；兼属 TGL-01（声明"天然不撞键"却无 tie-breaker 机制=fake-done）。**教训:传播枚举须含"命令加载链读到的所有文件"(此处 cw-retro 读 CONVENTIONS),非只改你正在编辑的那几个**。**20260621 第8次**：造 `/cw-design-review` 命令时,CONFIG 加载链没传播到 `ORCHESTRATOR §4`(仍写"experience 系命令"漏新命令)——**codex R1 抓**(我 §Lint grep 过了、9 分派点也查了,但 §4 那行是**语义传播、grep 扫不到**)。坐实:**明知 TGL-02 在册仍在新产物重犯;§Lint grep ≠ 语义完整性,新命令/新能力 authoring 必叠 codex 语义审**(见 [[TGL-20260621-design-overrotate-to-complex]] 同源:自评看不见自己的盲区)。**20260705 第9次**：加偏差日志能力,自查含 TGL-02 意识+L11 机械门全绿,codex 仍抓 6 处语义洞(spec/explore-full 命令包装、explore-full 卡 DONE-WHEN、总纲实现句/矩阵 cell/G1G2 序列)——**"必叠 codex 语义审"处方再次自证**(证据:`docs/.tg/work/20260705-014316-tg-unknowns-loop/reconcile.md` §四)。
+- 证据锚：CONFIG 解析铁律进卡但 orchestrator/模板还硬编码；actor 零专属进 CONFIG-TEMPLATE 但 experience 卡命令还写"权威 playbook"。**本 session 经 /cw-retro 双路确认：跨 codex review 5 轮复发、transcript 175 次提及——根因见 TGL-09（authoring 绕过自动浮现）**。**20260620 第7次**：加多机 merge-safe 改了 registry/card/command/design/GUARDRAILS 5 处却**漏 `WF-TG-CONVENTIONS.md`**（并发分类表仍"全局低频单写 OK"旧口径）+ §Lint 缺 id 唯一性——codex 对抗审抓出（我 grep 传播只扫手上 5 文件未含 CONVENTIONS）；兼属 TGL-01（声明"天然不撞键"却无 tie-breaker 机制=fake-done）。**教训:传播枚举须含"命令加载链读到的所有文件"(此处 cw-retro 读 CONVENTIONS),非只改你正在编辑的那几个**。**20260621 第8次**：造 `/cw-design-review` 命令时,CONFIG 加载链没传播到 `ORCHESTRATOR §4`(仍写"experience 系命令"漏新命令)——**codex R1 抓**(我 §Lint grep 过了、9 分派点也查了,但 §4 那行是**语义传播、grep 扫不到**)。坐实:**明知 TGL-02 在册仍在新产物重犯;§Lint grep ≠ 语义完整性,新命令/新能力 authoring 必叠 codex 语义审**(见 [[TGL-20260621-design-overrotate-to-complex]] 同源:自评看不见自己的盲区)。**20260705 第9次**：加偏差日志能力,自查含 TGL-02 意识+L11 机械门全绿,codex 仍抓 6 处语义洞(spec/explore-full 命令包装、explore-full 卡 DONE-WHEN、总纲实现句/矩阵 cell/G1G2 序列)——**"必叠 codex 语义审"处方再次自证**(证据:`docs/.tg/work/20260705-014316-tg-unknowns-loop/reconcile.md` §四)。**20260711 环境层同型**：context-mode 规则 6-20 清了 HOME+settings 源头,**漏 5 个工程级部署副本**(stwork/zstock/sembr/automation/你的项目-terminal)继续污染全部工作会话 21 天——传播枚举须含"规则的所有部署副本"(各工程 CLAUDE.md),非只改源头(证据:`docs/.tg/work/20260711-132818-tg-self-evolution/structural-review.md`)。
 
 ### TGL-03 自包含被指针破坏（depth-NOT-by-reference）
 - 症状：卡说"去读某外部方法论/重型框架获取深度/系统性"。零上下文 AI 不会读 → 能力落空。
@@ -145,3 +151,27 @@ grep -nE '缩写常见词|因果用箭头|用箭头表因果|箭头表因果' co
 - 处方：任务/检查项 `completed` **必须能指向该条目的 oracle 证据**(runtime/test/Witness artifact);拿不出 → 只能记中间态 `implemented` / `build-green` / `pending-verification`,**绝不 `completed`**。Handoff 状态清单同理:每个 ✅ 附证据锚或降级标注。**状态机即 SSOT 的一部分,污染它=污染后续所有 agent。**
 - 边界：纯机械/无验收语义的子步骤(如"建目录")可直接 completed;凡有"用户能用/验过"语义的条目都要绑 oracle。
 - 证据锚：本 session(raw codex 一手扫 transcript)`JSONL:632` 把 spike(自动跳回,真机项)标 completed + T5 in_progress;`JSONL:791` T5/T6 completed;但 `JSONL:1577`(Stop-hook)证明综合输入/任意 app 上屏/语音 sample/页面旅程**当时全未验**。= digest 路漏掉、**raw 一手扫 TaskUpdate 事件才抓**的盲区(坐实"一手 ≠ 预筛 digest")。
+
+### TGL-20260711-network-exposure-gate  扩大网络可达面未核门控
+- 症状：实现"分享/隧道/对外访问"类功能时只抄功能半边、不核目标服务鉴权现状——零 auth 服务被公网隧道暴露,任何人拿 URL 可读写全部数据;靠用户人肉发现截停。
+- 处方：任何**扩大网络可达面**的变更(tunnel/端口暴露/反代/分享链接/EnableNetwork 开关),动手前先核查并**输出一行"目标服务门控现状"**(有/无 auth + 依据);**无门控 → G3 停**,Human 知情才开(已入 ORCHESTRATOR §3 G3 触发清单,此条是它的自动浮现腿)。
+- 边界：本地回环/已鉴权面的常规改动不触发;专治"可达面扩大"这一步。
+- 证据锚：20260705 teamworkbench standalone——cloudflare tunnel × 零 auth,用户"没有authcode不应对外暴露"人肉截停,AI 自认"我搞砸了"(audit-M3 TOP-2,`docs/.tg/work/20260711-132818-tg-self-evolution/`)。
+
+### TGL-20260711-defensive-attribution  防御性归因先于证据
+- 症状：用户报 bug(常带"是不是你改出了bug"框架)→ 先输出"非我这轮改的"式自辩,读证据在后;被用户截图证伪(正是自己的改动所致),且自辩句反复占输出带宽。
+- 处方：**归因(谁改的)服务修复路径**——读完用户证据/复现/git diff 前**禁下归因结论**;归因结论必须与证据同条消息;面对归因指控的正确姿势 = "先查证据,不能凭印象" → 自证或认账,不反射式辩护也不反射式认错。
+- 边界：有现成硬证据(git log 明确)时直接给证据+结论无妨;禁的是"无证据先辩护"。
+- 证据锚：20260703 UsageChip position:fixed 抢焦点——同 session"非我这轮改的"≥3 次后被用户截图证伪(audit-M1 TOP-4);正例 20260701"你说得对,得先查证据,不能凭印象"→ git diff 自证未碰粘贴链再挖真根因。
+
+### TGL-20260711-tool-capability-misjudge  工具能力误判
+- 症状：对工具(CLI/库/API)grep 了截断的 help 没命中关键词,就断言"不支持 X",转身设计更脏的绕行(hack 验证/重造轮子);用户贴出正确用法才纠正。
+- 处方：下"工具不支持"断言前**全量读 help(含子命令)或 README**;断言必须**附 help 证据行**,否则按 ○ 处理并**优先怀疑用法而非能力**(§A.7② 工具域实例);要据"不支持"走绕行前——绕行成本 > 再读一遍文档,先读。
+- 边界：读全文档仍无 → 断言成立(附"已读全"声明)。
+- 证据锚：20260706 你的-UX-探针工具 `--user-agent` 误判不支持 → "临时强制 isInApp+还原"hack 绕行,用户贴 recipe 纠正,AI 自认"我之前 grep 没匹配到就误判不支持"(audit-M3 TOP-6);同族:你的-UX-探针工具 eval 误当 act 用(靠 memory 纠)。
+
+### TGL-20260711-ssot-search-exhaustion  SSOT 检索止步第一命中
+- 症状：检索既有实现/组件时第一个命中即收(或没命中即判"不存在")→ 另起炉灶重造(第三份组件/新仓),或让用户拍"现状早已满足"的决策;靠用户跨 session 记忆兜底纠正——用户在替系统当索引。
+- 处方：下"不存在/需新建/建新仓"结论前:**穷尽同义词族**(中英+缩写,如 usage/quota/rate-limit/额度)+ 目标目录 `ls` + **先查已有共享库/组件能不能当家**;每个待拍决策先自答"**现状是否已满足**"(满足=报告事实,不上决策台)。
+- 边界：确认扫过(列出所扫词族/目录)仍无 → 新建成立。
+- 证据锚：rate-limit 已有 claude_quota.go/codex_quota.go,AI 搜到 useUsageReport 即停,靠用户"我咋记得做过"兜底(audit-M1 TOP-6);QR+微信遮罩已有完整实现却另起简化版(audit-M3 会话四"是不是你迁移丢了?");"Enter=换行"现状已满足仍让用户拍(audit-M1)。
