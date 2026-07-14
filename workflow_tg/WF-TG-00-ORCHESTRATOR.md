@@ -41,7 +41,7 @@
 
 实现（写码）不单设命令：`/cw-spec`/`/cw-change` 产出清晰需求后由 agent 直接实现（或委派 codex，契约随任务传递）——**实现须产偏差日志 `implementation-notes.md`**（GUARDRAILS §8；G0 trivial 豁免），由 verify/explore-full 对账消费。
 
-**横切命令（无 card、自包含，任意环节可叠加调用）**：`/cw-caveman`（极简表达模式，省 token 不损实质/证据）· `/cw-handoff`（结构化跨 session 交接，固定块产出契约防丢信息）。设计文档同在 `design/`；它们不是管线环节，故无 step card。
+**横切命令（无 card、自包含，任意环节可叠加调用）**：`/cw-caveman`（极简表达模式，省 token 不损实质/证据）· `/cw-handoff`（结构化跨 session 交接，固定块产出契约防丢信息）· `/cw-grill-me`（对已成型方案逐分支逼问压测，一次一问+带推荐+确认门，只显式调用不隐式触发）。设计文档同在 `design/`；它们不是管线环节，故无 step card。
 **生命周期命令（有 card）**：`/cw-init`（新工程接入：自适应填 CONFIG + 查工具 + 验加载链）· `/cw-retro`（元教训蒸馏入 `WF-TG-META-LESSONS.md`，下次对账/authoring 自动浮现、防重犯——教训飞轮的捕获腿）。
 
 ## 2.1 三档澄清/碰撞（同一件事的三种深度 — 先判 D1）
@@ -69,7 +69,7 @@
 | exp-distill-baseline | – | ✓ | ✓(baselines)⁶ | – | — |
 | init | – | ✓(写) | –(产出=CONFIG) | – | 一次性 |
 | retro | ✓ | ✓⁷ | ✓(retro-scan) | ✓ | 横切 |
-| caveman / handoff | – | – | handoff→active run⁵ | – | 横切 |
+| caveman / handoff / grill-me | – | – | handoff→active run⁵ | – | 横切 |
 | goal-draft | – | 按需⁸ | 按需(plan)⁸ | – | 横切 |
 
 **列判据（rule，非逐命令拍脑袋）**：
@@ -78,7 +78,7 @@
 - ⁸goal-draft 的读 CONFIG / 落 run_root 均**条件性**：① 给了 scope 且该 scope 已有 `spec.md` → 经 CONFIG 读它取验收清单/非目标当 grounding；② 目标**非 trivial / 多 checkpoint** → 把完整计划（CP + 各 oracle + 约束 + 非目标）写入 `<run_root>/<thread-id>/goal-plan.md`（经 CONFIG 解析 run_root，有 active run-dir 用它、无则新建），condition 只留瘦身指针（指针 + 终态 + 择要）——**用文件传细节、压 condition 长度、避 4000 硬限与粘贴膨胀（类 handoff）**。单 CP 小目标零依赖、直接内联 condition。
 - ³**落 run_root**：凡**产出被下游消费**（诉求/delta/实现期偏差日志/实验记录/报告/findings/扫描结果）→ 必落 `<run_root>/<thread-id>/`（机器可解析、可 resume）。例外：brainstorm 纯过程(offer 不默认落)、think 固定位(`docs/topics/`，见⁵)、init 产出即 CONFIG。
 - ⁴**自度量（口径随域，统称记于此列）**：凡**产 finding/verdict/A–E 分类**的命令必带自效果指标，**形态按域**——Witness/对账类（verify/explore-full/design-review）用 `{raised, accepted, deferred, rejected_误报, human_escape_漏报}`（`deferred` 适用非阻断命令如 design-review；阻断式可省）；troubleshoot 用 `{reproduced, not_reproduced, dismissed_误报}`；experiment 用 result schema `{hypothesis,metric,threshold,n,result,flip}`（非四元组）；retro 用 `{recurring_found, recorded, deduped, gate_rejected, promoted}`。纯生成/澄清（clarify/brainstorm/think/spec/change/init/distill）→ 无。
-- ⁵think 落 `docs/topics/`（i-think 跨工程固定位，非 run_root，见 CONVENTIONS §2）；caveman/handoff 落当前 active run-dir（无则 mktemp，见 handoff 命令）。
+- ⁵think 落 `docs/topics/`（i-think 跨工程固定位，非 run_root，见 CONVENTIONS §2）；caveman/handoff 落当前 active run-dir（无则 mktemp，见 handoff 命令）；grill-me 无制品，不落盘。
 - ⁶distill **幂等**（重跑安全），产出落 `<持久化根>/<scope>/baselines/`（非 run_root），**无 run.json 恢复需求**；写基线用原子（全部写完再登记 status 指针，避免半成品被当基线）。
 - ⁷retro 读 CONFIG 仅为**解析 run_root**（放 retro-scan）；框架自审（claude_remote 无项目 CONFIG）→ run_root 默认 `docs/.tg/work/`（CONVENTIONS §2 默认值）。
 

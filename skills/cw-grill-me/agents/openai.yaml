@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "逐问逼问，压紧一个计划/决策"
+policy:
+  allow_implicit_invocation: false
